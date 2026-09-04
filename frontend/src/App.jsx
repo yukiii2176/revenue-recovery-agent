@@ -12,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [caseStatuses, setCaseStatuses] = useState({});
 
   useEffect(() => {
     loadData();
@@ -40,13 +41,20 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function handleUpdateCaseStatus(paymentId, newStatus) {
+    setCaseStatuses((prev) => ({
+      ...prev,
+      [paymentId]: newStatus,
+    }));
+  }
+
   if (loading) {
     return (
       <>
         <Header />
         <div className="loading-container">
           <div className="spinner" />
-          <span className="loading-text">Analyzing revenue data...</span>
+          <span className="loading-text">Agent analyzing revenue leakage & telemetry...</span>
         </div>
       </>
     );
@@ -71,17 +79,37 @@ function App() {
   const topCase = cases[0] || null;
   const otherCases = cases.slice(1);
 
+  const inProgressCount = Object.values(caseStatuses).filter(
+    (s) => s === 'recovery_initiated' || s === 'manual_review_requested'
+  ).length;
+
   return (
     <>
       <Header />
       <main className="app-main">
         {selectedCase ? (
-          <InvestigationView item={selectedCase} onBack={handleBack} />
+          <InvestigationView
+            item={selectedCase}
+            onBack={handleBack}
+            status={caseStatuses[selectedCase.payment_id] || 'action_required'}
+            onUpdateStatus={handleUpdateCaseStatus}
+          />
         ) : (
           <>
-            <Overview summary={data?.summary} />
-            <NextBestAction topCase={topCase} onInvestigate={handleInvestigate} />
-            <CaseList cases={otherCases} onInvestigate={handleInvestigate} />
+            <Overview
+              summary={data?.summary}
+              inProgressCount={inProgressCount}
+            />
+            <NextBestAction
+              topCase={topCase}
+              onInvestigate={handleInvestigate}
+              status={caseStatuses[topCase?.payment_id] || 'action_required'}
+            />
+            <CaseList
+              cases={otherCases}
+              onInvestigate={handleInvestigate}
+              caseStatuses={caseStatuses}
+            />
           </>
         )}
       </main>
