@@ -1,4 +1,4 @@
-const BASE_URL = https://revenue-recovery-agent-kvdd.onrender.com';
+const BASE_URL = 'https://revenue-recovery-agent-kvdd.onrender.com';
 
 export async function fetchInvestigateAll() {
   const res = await fetch(`${BASE_URL}/investigate-all`);
